@@ -4,6 +4,17 @@
 
 ---
 
+## [0.1.1] - 2026-02-01
+
+### 🐛 錯誤修復
+
+- **CI**: 移除 macOS x86_64 (`x86_64-apple-darwin`) 支援，因 GitHub Runner 已棄用 `macos-13`
+- **CI**: 修正 `aarch64-unknown-linux-gnu` 交叉編譯問題，改用 `cross`
+
+### 📝 文件更新
+
+- 更新 `README.md` 移除 macOS Intel 支援說明
+
 ## [0.1.0] - 2026-02-01
 
 ### ✨ 新增功能

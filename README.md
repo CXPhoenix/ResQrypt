@@ -18,7 +18,7 @@
 | 🗜️ **zstd 壓縮** | 高效壓縮，壓縮率可達 90%+ |
 | 🧠 **智慧偵測** | 已壓縮的 zstd 檔案不會重複壓縮 |
 | 📁 **目錄支援** | 整個資料夾打包加密 |
-| 🖥️ **跨平台** | Windows、macOS、Linux |
+| 🖥️ **跨平台** | Windows (x64)、macOS (Apple Silicon)、Linux (x64/ARM64) |
 | 🐳 **Docker** | 多架構 image (amd64/arm64) |
 
 ---
