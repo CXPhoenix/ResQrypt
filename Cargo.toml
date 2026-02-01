@@ -1,0 +1,47 @@
+[package]
+name = "resqrypt"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+authors = ["cxphoenix"]
+description = "Secure file and directory encryption tool using zstd compression and AES-256-GCM"
+license = "ECL-2.0"
+repository = "https://github.com/cxphoenix/resqrypt"
+keywords = ["encryption", "backup", "security", "aes", "zstd"]
+categories = ["command-line-utilities", "cryptography"]
+readme = "README.md"
+
+[dependencies]
+# CLI
+clap = { version = "4.5", features = ["derive", "env"] }
+
+# Cryptography
+aes-gcm = "0.10"
+argon2 = "0.5"
+rand = "0.9"
+
+# Compression
+zstd = "0.13"
+
+# Archive
+tar = "0.4"
+walkdir = "2.5"
+
+# Error handling
+thiserror = "2.0"
+anyhow = "1.0"
+
+# User interaction
+indicatif = "0.17"
+rpassword = "7.3"
+
+[dev-dependencies]
+tempfile = "3.15"
+assert_cmd = "2.0"
+predicates = "3.1"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
