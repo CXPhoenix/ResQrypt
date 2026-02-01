@@ -15,6 +15,9 @@
 //! resqrypt decrypt -i secret.txt.resqrypt -o secret.txt
 //! ```
 
+pub mod archive;
+pub mod compression;
+pub mod crypto;
 pub mod error;
 
 pub use error::{ResqryptError, Result};
