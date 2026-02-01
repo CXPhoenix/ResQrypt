@@ -16,9 +16,12 @@
 //! ```
 
 pub mod archive;
+pub mod cli;
+pub mod commands;
 pub mod compression;
 pub mod crypto;
 pub mod error;
+pub mod utils;
 
 pub use error::{ResqryptError, Result};
 
