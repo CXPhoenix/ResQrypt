@@ -1,0 +1,8 @@
+services:
+  resqrypt:
+    build: .
+    volumes:
+      - ./data:/data
+    environment:
+      - RESQRYPT_PASSWORD=${RESQRYPT_PASSWORD:-}
+    working_dir: /data
