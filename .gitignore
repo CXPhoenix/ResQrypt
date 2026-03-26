@@ -18,3 +18,5 @@ test_output/
 .env
 .env.local
 temp/
+.spectra/
+openspec/.vector-search.db*
