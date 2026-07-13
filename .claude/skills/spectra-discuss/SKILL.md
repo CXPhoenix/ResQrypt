@@ -1,6 +1,7 @@
 ---
 name: spectra-discuss
 description: "Have a focused discussion about a topic and reach a conclusion"
+effort: xhigh
 disallowedTools: [Edit, Write]
 license: MIT
 compatibility: Requires spectra CLI.
@@ -26,7 +27,97 @@ Have a focused discussion about a topic and reach a conclusion.
 
 ---
 
+## Before You Speak
+
+Before asking anything, load the shared vocabulary, then do a quick codebase scout to decide how to run this discussion.
+
+### Step 0: Load shared vocabulary
+
+Try to read `openspec/LANGUAGE.md`. This file is the project's canonical vocabulary — terms with `definition`, `avoid`, and `why` notes, plus principles for when legacy terminology may remain.
+
+- **If the file exists**: scan the canonical terms and their avoided synonyms. Prefer the canonical term when you summarize, capture conclusions, or update artifacts. If you notice a relevant `avoid` synonym in the user's topic or in the artifacts you read, plan to surface that as vocabulary drift in the conclusion.
+- **If the file does not exist**: continue silently with the normal flow. A missing vocabulary file is not an error; do not announce it, do not block, and do not stop to ask the user to create it.
+
+This step runs before the codebase scout, the assumptions list, the interview questions, and the conclusion capture.
+
+### Step 1: Extract search terms
+
+Pull 2-5 keywords from the user's topic. For "search should support fuzzy matching", that's `search`, `fuzzy`, `match`. For "should we add a plugin system", that's `plugin`, `extension`, `module`.
+
+### Step 2: Scout the codebase
+
+Use Grep and Glob to find related source files (not docs, not tests — source code). Spend no more than a few seconds on this. Read up to 5 of the most relevant files found.
+
+### Step 3: Pick a mode
+
+- **3+ related source files found** → **Assumptions mode**: you have enough context to form opinions. List your assumptions, let the user correct.
+- **Fewer than 3 related source files found** → **Interview mode**: not enough code to base assumptions on. Fall through to "How to Discuss" below and ask questions one at a time.
+
+Announce which mode you picked and why: "Found `search.rs`, `SearchPanel.svelte`, `search-store.ts` — I have enough context to list my assumptions." or "Didn't find much related code — I'll ask questions instead."
+
+### Assumptions mode
+
+When you enter assumptions mode, present 3-5 assumptions. Each one MUST include:
+
+1. **Approach**: what you'd do and why
+2. **Evidence**: file path(s) that informed this assumption
+3. **If wrong**: concrete consequence of getting this wrong
+
+Example:
+
+```
+### My assumptions
+
+1. **New IPC command goes in `commands/search.rs`**
+   Evidence: existing search commands are in `src-tauri/src/commands/search.rs`
+   If wrong: we'd need to create a new module and register it
+
+2. **Use the existing `SearchStore` for state**
+   Evidence: `src/lib/stores/search-store.ts` already manages search state
+   If wrong: parallel state would cause sync bugs
+
+3. **Fuzzy matching runs in Rust, not frontend**
+   Evidence: current search scoring is in `search.rs:calculate_score()`
+   If wrong: moving to frontend means rewriting the scoring logic in TypeScript
+```
+
+After presenting, ask: **"Which of these are wrong?"**
+
+- If the user says all are fine → proceed to Convergence with these as established context.
+- If the user flags corrections → for each one, ask ONE focused follow-up question to understand their intent, then proceed to Convergence with the corrected understanding.
+
+### Mode switching
+
+The user can switch modes at any time during the discussion:
+
+- **"Ask me questions instead"** / **"one at a time"** → switch to interview mode (the "How to Discuss" section below)
+- **"Just list your assumptions"** / **"what do you think?"** → run the codebase scout if not done yet, then switch to assumptions mode
+
+### Step 4: Interface depth check (conditional)
+
+After the codebase scout, evaluate whether the topic introduces a new architectural seam. Run this check **only** when the topic involves at least one of:
+
+- A **new module** (a new Rust crate, file under `src-tauri/src/commands/`, or a new top-level Svelte module).
+- A **new IPC command** (a new `#[tauri::command]` exposed to the frontend, or a new front-to-back message shape).
+- A **cross-layer Rust ↔ Tauri ↔ Svelte flow** that did not exist before.
+- A **new storage abstraction** (new on-disk format, new database table, new file-system layout, new adapter over existing storage).
+
+If none of those conditions apply, **skip this check**. Topics that only change static UI copy, visual styling, documentation wording, or other non-architectural surfaces SHALL skip the depth check entirely. The vocabulary load from Step 0 still happens; nothing else from this step runs.
+
+When the check is triggered, work through these four questions before you finalize assumptions or interview answers:
+
+1. **Seam location** — where does the boundary belong? Name the module, file, or store that owns the new contract.
+2. **Adapter count** — is there exactly one adapter on this path, or are several thin wrappers stacked on each other?
+3. **Depth** — what behaviour is hidden behind the interface? If the answer is "nothing — it just forwards calls", the seam is too shallow.
+4. **Deletion test** — if you deleted this module today, what would break? If nothing meaningful breaks, the module is a pass-through and probably should not exist.
+
+Surface the answers in the conclusion (or the assumptions list, if you are in assumptions mode) so the depth question is part of the captured decision, not an internal note.
+
+---
+
 ## How to Discuss
+
+_This section applies to interview mode — either chosen automatically (insufficient code context) or switched to manually by the user._
 
 **One question at a time.** Don't dump a list of 10 questions. Ask the most important one, listen, then follow up. Let the conversation breathe. If the user's initial description or previous answers already cover a question, skip it — don't ask what you already know.
 
@@ -112,6 +203,8 @@ The conclusion should be one of:
 - **Next-step recommendation**: "We need to spike the plugin API first to validate the approach"
 - **Explicit deferral**: "We don't have enough info yet. Specifically, we need to know X before deciding"
 
+**Example elicitation**: When the discussion converges on a specific requirement or behavior, propose a concrete example before capturing the decision. Instead of concluding "search should sort by relevance", propose: "So if we have items scored 0.9, 0.3, 0.7, the result order would be 0.9, 0.7, 0.3 — is that right?" This naturally produces `##### Example:` content for the spec and confirms shared understanding with real values.
+
 **If the user wants to move faster.** Sometimes the user signals impatience — "let's just go with X", "I don't want to overthink this", "can we move on?". Respect their pace:
 
 1. **First time**: Briefly flag if there's an important unresolved question — one sentence, not a lecture. "Before we commit to X, worth noting that Y could affect Z. Want to address it or move forward?"
@@ -157,6 +250,9 @@ Where to capture:
 | Design decision made       | `design.md`                  |
 | Scope changed              | `proposal.md`                |
 | New work identified        | `tasks.md`                   |
+| Vocabulary drift           | `openspec/LANGUAGE.md`    |
+
+**Vocabulary drift** means the discussion surfaced a recurring concept that is missing, ambiguous, or pulling away from the shared vocabulary loaded in Step 0. Examples: the topic uses a term that the vocabulary lists as an `avoid` synonym, or the discussion repeatedly names a concept that has no entry yet. When this happens, name it as vocabulary drift in the conclusion summary and direct the capture to `openspec/LANGUAGE.md`. The conclusion summary SHALL preserve this contract — do not silently rewrite the term in the artifacts without recording the drift.
 
 Present the summary and say something like "I'll capture this to design.md unless you'd rather not." Default to capturing — the user can decline.
 
